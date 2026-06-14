@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>eImmunize — Facility Register</title>
+<style>
+:root{
+  --teal:#00574F;--teal2:#007A6E;--mint:#00C49A;--mintl:#E0F7F1;
+  --amber:#C97B00;--amberl:#FFF3DC;--red:#B52D2D;--redl:#FDEAEA;
+  --green:#1A6B42;--greenl:#E3F5EC;--ink:#0D1F1E;--mid:#3A5C59;--muted:#6B8F8C;
+  --line:#D0E6E3;--bg:#F2FAF9;--white:#FFFFFF;
+  --shadow:0 2px 16px rgba(0,87,79,0.10);--r:10px;--r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,var(--teal) 0%,var(--teal2) 55%,#004A42 100%);padding:20px;}
+.setup-card{background:var(--white);border-radius:16px;padding:32px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(0,0,0,0.25);}
+.logo{font-size:26px;font-weight:900;color:var(--teal);letter-spacing:-1px;font-family:Georgia,serif;}
+.logo em{color:var(--mint);font-style:normal;}
+.hdr{background:var(--teal);color:#fff;height:54px;display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:300;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
+.hdr-logo{font-family:Georgia,serif;font-size:18px;font-weight:900;letter-spacing:-0.5px;}
+.hdr-logo em{color:var(--mint);font-style:normal;}
+.hdr-fac{font-size:11px;color:rgba(255,255,255,0.6);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sync-pill{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;border:1px solid rgba(255,255,255,0.18);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--mint);flex-shrink:0;}
+.sdot.pending{background:var(--amber);}
+.sdot.error{background:var(--red);}
+.sdot.syncing{width:10px;height:10px;background:transparent;border:2px solid var(--mint);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.tabs{background:var(--white);border-bottom:2px solid var(--line);display:flex;overflow-x:auto;padding:0 12px;position:sticky;top:54px;z-index:200;}
+.tab{padding:11px 16px;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;margin-bottom:-2px;transition:all .15s;}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal);}
+.cnt{background:var(--mint);color:var(--teal);font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:5px;}
+.pg{padding:16px;max-width:1000px;margin:0 auto;}
+.panel{display:none;}.panel.on{display:block;}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:14px;}
+.ch{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ch::before{content:'';width:4px;height:14px;background:var(--mint);border-radius:2px;display:inline-block;}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:10px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.3px;}
+.req{color:var(--red);}
+.fg input,.fg select,.fg textarea{border:1.5px solid var(--line);border-radius:var(--r2);padding:8px 10px;font-size:13px;color:var(--ink);background:var(--bg);transition:border .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--teal2);background:var(--white);}
+.fg input[readonly]{background:#eee;color:var(--muted);}
+.vchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;margin-bottom:4px;}
+.vc{border:1.5px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer;background:var(--bg);transition:all .15s;user-select:none;}
+.vc:hover{border-color:var(--teal2);background:var(--mintl);}
+.vc.on{border-color:var(--mint);background:var(--mintl);box-shadow:0 0 0 1px var(--mint);}
+.vc-name{font-size:12px;font-weight:700;color:var(--ink);}
+.vc-sub{font-size:10px;color:var(--muted);}
+.vc.on .vc-name{color:var(--green);}
+.btn{padding:9px 18px;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.btn-p{background:var(--teal);color:#fff;}.btn-p:hover{background:var(--teal2);}
+.btn-s{background:var(--green);color:#fff;}.btn-s:hover{background:#145234;}
+.btn-o{background:transparent;border:1.5px solid var(--teal);color:var(--teal);}.btn-o:hover{background:var(--mintl);}
+.btn-r{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.banner{background:linear-gradient(100deg,var(--teal) 0%,var(--teal2) 100%);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.b-stats{display:flex;gap:20px;flex-wrap:wrap;}
+.bsi{display:flex;flex-direction:column;}
+.bsl{font-size:10px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.5px;}
+.bsv{font-size:18px;font-weight:900;color:#fff;}
+.tw{overflow-x:auto;}
+.rt{width:100%;border-collapse:collapse;font-size:12.5px;min-width:860px;}
+.rt thead th{background:var(--teal);color:#fff;padding:9px 10px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+.rt tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s;}
+.rt tbody tr:hover{background:var(--mintl);}
+.rt tbody tr.zd-row{background:#FFFBEA;}
+.rt td{padding:8px 10px;vertical-align:middle;}
+.rt td:first-child{font-weight:700;color:var(--teal);font-family:monospace;font-size:11px;}
+.vtags{display:flex;flex-wrap:wrap;gap:3px;}
+.vtag{background:var(--mintl);color:var(--teal);border:1px solid var(--line);border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+.tc{background:var(--mintl);border:1.5px solid var(--line);border-radius:var(--r);padding:11px;text-align:center;}
+.tcn{font-size:11px;font-weight:700;color:var(--ink);}
+.tcv{font-size:26px;font-weight:900;color:var(--teal);line-height:1.1;}
+.tcs{font-size:10px;color:var(--muted);margin-top:2px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.bg-g{background:var(--greenl);color:var(--green);}
+.bg-a{background:var(--amberl);color:var(--amber);}
+.bg-r{background:var(--redl);color:var(--red);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:14px;}
+.ov.on{display:flex;}
+.modal{background:var(--white);border-radius:14px;max-width:620px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+.mh{background:var(--teal);color:#fff;padding:16px 20px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.mh h3{font-size:15px;font-weight:700;}
+.mc-btn{background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.mb{padding:18px;}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;font-weight:600;z-index:900;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
+.toast.on{opacity:1;}
+.flex{display:flex;}.aic{align-items:center;}.jcb{justify-content:space-between;}.fw{flex-wrap:wrap;}
+.gap8{gap:8px;}.gap12{gap:12px;}.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.sm{font-size:12px;}.muted{color:var(--muted);}.bold{font-weight:700;}.w100{width:100%;}
+.divider{border:none;border-top:1px solid var(--line);margin:13px 0;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty .ei{font-size:42px;margin-bottom:10px;}
+@media(max-width:500px){.row{grid-template-columns:1fr;}.vchips{grid-template-columns:1fr 1fr;}.b-stats{gap:14px;}}
+</style>
+</head>
+<body>
+
+<div id="setup">
+<div class="setup-card">
+  <div class="logo">e<em>Immunize</em></div>
+  <p class="sm muted" style="margin-top:2px;margin-bottom:20px;">Rivers State PHCMB · Electronic Immunization Register</p>
+  <p class="bold mb8" style="font-size:15px;">Register Your Facility</p>
+  <p class="sm muted mb12">Fill in once. Records sync live to the SIO Dashboard.</p>
+  <div class="row">
+    <div class="fg"><label>Facility Name <span class="req">*</span></label><input id="s_name" placeholder="e.g. Grace Specialist Clinic"/></div>
+    <div class="fg"><label>Facility Code</label><input id="s_code" placeholder="RSPHCMB-PRV-001"/></div>
+  </div>
+  <div class="row">
+    <div class="fg"><label>LGA <span class="req">*</span></label>
+      <select id="s_lga"><option value="">— Select LGA —</option>
+        <option>Abua/Odual</option><option>Ahoada East</option><option>Ahoada West</option><option>Akuku-Toru</option>
+        <option>Andoni</option><option>Asari-Toru</option><option>Bonny</option><option>Degema</option>
+        <option>Eleme</option><option>Emuoha</option><option>Etche</option><option>Gokana</option>
+        <option>Ikwerre</option><option>Khana</option><option>Obio/Akpor</option><option>Ogba/Egbema/Ndoni</option>
+        <option>Ogu/Bolo</option><option>Okrika</option><option>Omuma</option><option>Opobo/Nkoro</option>
+        <option>Oyigbo</option><option>Port Harcourt</option><option>Tai</option>
+      </select></div>
+    <div class="fg"><label>Ward</label><input id="s_ward" placeholder="Ward name"/></div>
+  </div>
+  <div class="row">
+    <div class="fg"><label>RI Focal Person <span class="req">*</span></label><input id="s_focal" placeholder="Full name"/></div>
+    <div class="fg"><label>Phone</label><input id="s_phone" type="tel" placeholder="08012345678"/></div>
+  </div>
+  <button class="btn btn-p w100 mt8" style="justify-content:center;" onclick="setupFacility()">Open Register →</button>
+  <p class="sm muted mt8" style="text-align:center;">Already registered? <a href="#" style="color:var(--teal);" onclick="loadExisting()">Load existing data</a></p>
+</div>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="hdr">
+    <div><div class="hdr-logo">e<em>Immunize</em></div></div>
+    <div class="hdr-fac" id="hdr-fac">—</div>
+    <div class="sync-pill"><div class="sdot" id="sdot"></div><span id="slabel">Ready</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('reg')">📋 Register <span class="cnt" id="cnt-reg">0</span></button>
+    <button class="tab" onclick="showTab('new')">➕ New Entry</button>
+    <button class="tab" onclick="showTab('sum')">📊 Session Summary</button>
+    <button class="tab" onclick="showTab('stk')">💊 Stock</button>
+  </div>
+  <div class="pg">
+
+    <div class="panel on" id="panel-reg">
+      <div class="banner">
+        <div class="b-stats">
+          <div class="bsi"><span class="bsl">Today</span><span class="bsv" id="b-today">0</span></div>
+          <div class="bsi"><span class="bsl">Total</span><span class="bsv" id="b-total">0</span></div>
+          <div class="bsi"><span class="bsl">Zero-dose today</span><span class="bsv" id="b-zd">0</span></div>
+          <div class="bsi"><span class="bsl">Date</span><span class="bsv" id="b-date">—</span></div>
+        </div>
+        <button class="btn" style="border:1.5px solid rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.1);" onclick="showTab('new')">+ New Entry</button>
+      </div>
+      <div class="card">
+        <div class="ch">Children Register</div>
+        <div class="flex gap8 mb12 fw">
+          <input id="srch" type="text" placeholder="🔍  Search name or ID…"
+            style="flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:var(--bg);"
+            oninput="renderReg()"/>
+          <select id="filt" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:var(--bg);" onchange="renderReg()">
+            <option value="">All records</option>
+            <option value="today">Today only</option>
+            <option value="zd">Zero-dose</option>
+          </select>
+        </div>
+        <div class="tw"><table class="rt" id="rtbl">
+          <thead><tr><th>ID</th><th>Child Name</th><th>Age/Sex</th><th>Mother</th><th>Community</th><th>Session Date</th><th>Vaccines Given</th><th>Zero-Dose</th><th>Next Appt</th></tr></thead>
+          <tbody id="rtbody"></tbody>
+        </table></div>
+        <div class="empty" id="reg-empty" style="display:none;"><div class="ei">📋</div><p>No records yet.<br>Tap <b>+ New Entry</b> to begin.</p></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-new">
+      <div class="card">
+        <div class="ch">Child & Caregiver Details</div>
+        <div class="row">
+          <div class="fg"><label>Surname <span class="req">*</span></label><input id="n_sur" placeholder="Surname"/></div>
+          <div class="fg"><label>Other Names <span class="req">*</span></label><input id="n_fn" placeholder="First and middle name"/></div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Date of Birth <span class="req">*</span></label><input id="n_dob" type="date" onchange="calcAge()"/></div>
+          <div class="fg"><label>Age (auto)</label><input id="n_age" readonly/></div>
+          <div class="fg"><label>Sex <span class="req">*</span></label><select id="n_sex"><option value="">—</option><option>Male</option><option>Female</option></select></div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Mother / Caregiver <span class="req">*</span></label><input id="n_mum" placeholder="Full name"/></div>
+          <div class="fg"><label>Phone</label><input id="n_ph" type="tel" placeholder="08012345678"/></div>
+          <div class="fg"><label>Community / Address</label><input id="n_com" placeholder="Community or street"/></div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Health Card?</label><select id="n_card"><option value="Yes">Yes — issued</option><option value="No">No</option><option value="Existing">Existing card</option></select></div>
+          <div class="fg"><label>Visit Type</label><select id="n_vt"><option>Fixed session</option><option>Outreach</option><option>Defaulter return</option></select></div>
+          <div class="fg"><label>Zero-Dose Child?</label><select id="n_zd"><option value="No">No — prior vaccines</option><option value="Yes">Yes — first contact</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">Vaccines Given This Visit <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--muted);">— tap each one given</span></div>
+        <div class="vchips" id="vchips"></div>
+      </div>
+      <div class="card">
+        <div class="ch">Session Details</div>
+        <div class="row">
+          <div class="fg"><label>Session Date <span class="req">*</span></label><input id="n_dt" type="date"/></div>
+          <div class="fg"><label>Vaccinator</label><input id="n_by" placeholder="Name of vaccinator"/></div>
+          <div class="fg"><label>Next Appointment</label><input id="n_nxt" type="date"/></div>
+        </div>
+        <div class="fg mb12"><label>Remarks</label>
+          <textarea id="n_rem" rows="2" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:8px 10px;font-size:13px;resize:vertical;background:var(--bg);"></textarea>
+        </div>
+        <div class="flex gap8 fw"><button class="btn btn-s" onclick="saveChild()">✓ Save to Register</button><button class="btn btn-o" onclick="clearForm()">Clear</button></div>
+        <div id="save-msg" class="sm muted mt8"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-sum">
+      <div class="card">
+        <div class="ch">Filter by Date</div>
+        <div class="flex gap8 fw aic">
+          <div class="fg" style="flex:0 0 auto;"><label>Date</label><input id="sum-dt" type="date" onchange="renderSum()"/></div>
+          <button class="btn btn-o btn-sm" onclick="document.getElementById('sum-dt').value=today();renderSum()">Today</button>
+          <button class="btn btn-o btn-sm" onclick="document.getElementById('sum-dt').value='';renderSum()">All time</button>
+        </div>
+      </div>
+      <div id="sum-stats" class="card"></div>
+      <div class="card"><div class="ch">Vaccine Tally — Doses Given</div><div class="tg" id="tally"></div></div>
+    </div>
+
+    <div class="panel" id="panel-stk">
+      <div class="card">
+        <div class="ch">Vaccine Stock — Current Inventory</div>
+        <p class="sm muted mb12">Doses Used auto-pulled from the register. Update Opening Balance and Received after each collection from LGA store.</p>
+        <div class="tw"><table class="rt" style="min-width:640px;">
+          <thead><tr><th>Vaccine</th><th>Opening Balance</th><th>Received</th><th>Used (register)</th><th>Discarded</th><th>Closing</th><th>Wastage %</th></tr></thead>
+          <tbody id="stk-body"></tbody>
+        </table></div>
+        <button class="btn btn-p mt12" onclick="saveStock()">💾 Save Stock</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="ov" id="child-ov">
+  <div class="modal">
+    <div class="mh"><h3 id="m-title">Child Record</h3><button class="mc-btn" onclick="closeMod()">×</button></div>
+    <div class="mb" id="m-body"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://jojqqtncavxvykjxrcda.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvanFxdG5jYXZ4dnlranhyY2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMDMyMDQsImV4cCI6MjA5Njg3OTIwNH0.gQBD8bjUuVKHpnGQEf3X-I_RaIXQPTrxK2LsxoFLah0';
+const SBH={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+const VAX=[
+  {id:'BCG',name:'BCG',sub:'TB · Birth'},{id:'OPV0',name:'OPV-0',sub:'Polio · Birth'},
+  {id:'OPV1',name:'OPV-1',sub:'Polio · 6wks'},{id:'OPV2',name:'OPV-2',sub:'Polio · 10wks'},
+  {id:'OPV3',name:'OPV-3',sub:'Polio · 14wks'},{id:'IPV1',name:'IPV-1',sub:'Polio inj · 6wks'},
+  {id:'IPV2',name:'IPV-2',sub:'Polio inj · 14wks'},{id:'HepB0',name:'Hep B0',sub:'Hepatitis B · Birth'},
+  {id:'Penta1',name:'Penta-1',sub:'DPT · 6wks'},{id:'Penta2',name:'Penta-2',sub:'DPT · 10wks'},
+  {id:'Penta3',name:'Penta-3',sub:'DPT · 14wks'},{id:'PCV1',name:'PCV-1',sub:'Pneumo · 6wks'},
+  {id:'PCV2',name:'PCV-2',sub:'Pneumo · 10wks'},{id:'PCV3',name:'PCV-3',sub:'Pneumo · 14wks'},
+  {id:'Rota1',name:'Rota-1',sub:'Rota · 6wks'},{id:'Rota2',name:'Rota-2',sub:'Rota · 10wks'},
+  {id:'Rota3',name:'Rota-3',sub:'Rota · 14wks'},{id:'MR1',name:'MR-1',sub:'Measles · 9m'},
+  {id:'MR2',name:'MR-2',sub:'Measles · 15m'},{id:'YF',name:'Yel.Fever',sub:'YF · 9m'},
+  {id:'MenA',name:'MenA',sub:'Mening · 9m'},{id:'HPV1',name:'HPV-1',sub:'Girls 9–14yr'},
+  {id:'HPV2',name:'HPV-2',sub:'Girls · 6m later'},{id:'Td',name:'Td',sub:'Tetanus · Women'},
+  {id:'VitA',name:'Vit A',sub:'Vitamin A'},
+];
+const SGRP=[
+  {id:'BCG',name:'BCG'},{id:'OPV',name:'OPV'},{id:'IPV',name:'IPV'},{id:'HepB0',name:'Hep B0'},
+  {id:'Penta',name:'Pentavalent'},{id:'PCV',name:'PCV10'},{id:'Rota',name:'Rotavirus'},
+  {id:'MR',name:'MR'},{id:'YF',name:'Yellow Fever'},{id:'MenA',name:'MenA'},
+  {id:'HPV',name:'HPV'},{id:'Td',name:'Td'},{id:'VitA',name:'Vitamin A'},
+];
+const DPFX={OPV:['OPV0','OPV1','OPV2','OPV3'],IPV:['IPV1','IPV2'],
+  Penta:['Penta1','Penta2','Penta3'],PCV:['PCV1','PCV2','PCV3'],
+  Rota:['Rota1','Rota2','Rota3'],MR:['MR1','MR2'],HPV:['HPV1','HPV2']};
+
+let facility={},children=[],stock={},pending=[];
+const SK_F='eimm_fac',SK_C='eimm_ch',SK_S='eimm_stk',SK_P='eimm_pend';
+
+function loadLocal(){
+  facility=JSON.parse(localStorage.getItem(SK_F)||'{}');
+  children=JSON.parse(localStorage.getItem(SK_C)||'[]');
+  stock=JSON.parse(localStorage.getItem(SK_S)||'{}');
+  pending=JSON.parse(localStorage.getItem(SK_P)||'[]');
+}
+function saveLocal(){
+  localStorage.setItem(SK_F,JSON.stringify(facility));
+  localStorage.setItem(SK_C,JSON.stringify(children));
+  localStorage.setItem(SK_S,JSON.stringify(stock));
+  localStorage.setItem(SK_P,JSON.stringify(pending));
+}
+window.onload=()=>{loadLocal();if(facility.name)showApp();};
+function loadExisting(){loadLocal();if(facility.name)showApp();else alert('No facility data found.');}
+
+function setupFacility(){
+  const name=document.getElementById('s_name').value.trim();
+  const lga=document.getElementById('s_lga').value;
+  const focal=document.getElementById('s_focal').value.trim();
+  if(!name||!lga||!focal){alert('Facility Name, LGA and RI Focal Person are required.');return;}
+  facility={name,lga,ward:document.getElementById('s_ward').value.trim(),
+    focalPerson:focal,phone:document.getElementById('s_phone').value.trim(),
+    code:document.getElementById('s_code').value.trim()};
+  saveLocal();showApp();
+}
+
+function showApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('hdr-fac').textContent=`${facility.name} · ${facility.lga} · ${facility.focalPerson}`;
+  document.getElementById('n_dt').value=today();
+  buildVchips();buildStockTable();renderReg();renderSum();
+  if(pending.length)flushPending();
+}
+
+function showTab(name){
+  ['reg','new','sum','stk'].forEach(t=>{document.getElementById('panel-'+t).classList.toggle('on',t===name);});
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['reg','new','sum','stk'][i]===name));
+  if(name==='sum')renderSum();
+  if(name==='stk')buildStockTable();
+  if(name==='reg')renderReg();
+}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtD(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});}
+function genID(){
+  const d=new Date(),yr=String(d.getFullYear()).slice(2),mo=String(d.getMonth()+1).padStart(2,'0');
+  const lgc=(facility.lga||'RS').replace(/[^A-Za-z]/g,'').substring(0,3).toUpperCase();
+  return`RS-${lgc}-${yr}${mo}-${String(children.length+1).padStart(4,'0')}`;
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3000);}
+function setSS(state,lbl){
+  document.getElementById('sdot').className='sdot'+(state?' '+state:'');
+  document.getElementById('slabel').textContent=lbl;
+}
+
+function calcAge(){
+  const dob=document.getElementById('n_dob').value;if(!dob)return;
+  const b=new Date(dob),n=new Date();
+  let y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth();
+  if(m<0){y--;m+=12;}
+  document.getElementById('n_age').value=y===0?`${m}m`:`${y}yr ${m}m`;
+  const tot=y*12+m,nxt=new Date(b);
+  if(tot<2)nxt.setMonth(nxt.getMonth()+2);
+  else if(tot<3)nxt.setMonth(nxt.getMonth()+1);
+  else if(tot<9){nxt.setFullYear(b.getFullYear());nxt.setMonth(9);}
+  else if(tot<15){nxt.setFullYear(b.getFullYear());nxt.setMonth(15);}
+  if(nxt>n)document.getElementById('n_nxt').value=nxt.toISOString().split('T')[0];
+}
+
+function buildVchips(){
+  document.getElementById('vchips').innerHTML=VAX.map(v=>
+    `<div class="vc" id="vc_${v.id}" onclick="this.classList.toggle('on')">
+      <div class="vc-name">${v.name}</div><div class="vc-sub">${v.sub}</div>
+    </div>`).join('');
+}
+function getSelVax(){return VAX.filter(v=>document.getElementById('vc_'+v.id)?.classList.contains('on')).map(v=>({id:v.id,name:v.name}));}
+function clearVchips(){VAX.forEach(v=>document.getElementById('vc_'+v.id)?.classList.remove('on'));}
+
+async function saveChild(){
+  const sur=document.getElementById('n_sur').value.trim();
+  const fn=document.getElementById('n_fn').value.trim();
+  const dob=document.getElementById('n_dob').value;
+  const sex=document.getElementById('n_sex').value;
+  const mum=document.getElementById('n_mum').value.trim();
+  const vax=getSelVax();
+  if(!sur||!fn){toast('⚠ Enter child full name');return;}
+  if(!dob){toast('⚠ Date of birth required');return;}
+  if(!sex){toast('⚠ Select sex');return;}
+  if(!mum){toast('⚠ Mother name required');return;}
+  if(!vax.length){toast('⚠ Select at least one vaccine');return;}
+
+  const msg=document.getElementById('save-msg');
+  msg.textContent='Saving…';
+
+  const rec={
+    id:genID(),facility_name:facility.name,facility_lga:facility.lga,
+    facility_ward:facility.ward||'',focal_person:facility.focalPerson,
+    child_full_name:`${sur} ${fn}`,child_surname:sur,child_firstname:fn,
+    dob,age:document.getElementById('n_age').value,sex,
+    mother_name:mum,phone:document.getElementById('n_ph').value.trim(),
+    community:document.getElementById('n_com').value.trim(),
+    health_card:document.getElementById('n_card').value,
+    visit_type:document.getElementById('n_vt').value,
+    zero_dose:document.getElementById('n_zd').value,
+    session_date:document.getElementById('n_dt').value||today(),
+    vaccines:JSON.stringify(vax),
+    next_appointment:document.getElementById('n_nxt').value,
+    administered_by:document.getElementById('n_by').value.trim()||facility.focalPerson,
+    remarks:document.getElementById('n_rem').value.trim(),
+    created_at:new Date().toISOString(),
+  };
+
+  children.push({...rec,vaccines:vax});
+  saveLocal();updateCounts();
+
+  const ok=await pushSB(rec);
+  if(ok){
+    msg.textContent=`✓ Saved and synced to dashboard — ID: ${rec.id}`;
+    toast(`✓ ${rec.child_full_name} — live on dashboard`);
+  } else {
+    pending.push(rec);saveLocal();
+    msg.textContent=`✓ Saved locally (syncs when online) — ID: ${rec.id}`;
+    toast('✓ Saved — will sync when connected');
+  }
+  clearForm();showTab('reg');
+}
+
+async function pushSB(rec){
+  try{
+    setSS('syncing','Syncing…');
+    const r=await fetch(`${SB_URL}/rest/v1/immunization_register`,{
+      method:'POST',headers:{...SBH,'Prefer':'return=minimal'},body:JSON.stringify(rec)
+    });
+    if(r.ok||r.status===201||r.status===409){setSS('','Live ✓');setTimeout(()=>setSS('','Ready'),3000);return true;}
+    throw new Error(r.status);
+  }catch(e){setSS('error','Offline');setTimeout(()=>setSS('pending',`${pending.length+1} pending`),200);return false;}
+}
+
+async function flushPending(){
+  if(!pending.length)return;
+  setSS('syncing',`Syncing ${pending.length}…`);
+  const left=[];
+  for(const r of pending){const ok=await pushSB(r);if(!ok)left.push(r);}
+  pending=left;saveLocal();
+  if(!left.length){setSS('','Live ✓');if(pending.length===0)toast('✓ All pending records synced');}
+  else setSS('error',`${left.length} pending`);
+}
+
+function clearForm(){
+  ['n_sur','n_fn','n_dob','n_age','n_mum','n_ph','n_com','n_rem','n_nxt','n_by'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('n_sex').value='';
+  document.getElementById('n_card').value='Yes';
+  document.getElementById('n_vt').value='Fixed session';
+  document.getElementById('n_zd').value='No';
+  document.getElementById('n_dt').value=today();
+  document.getElementById('save-msg').textContent='';
+  clearVchips();
+}
+
+function renderReg(){
+  const srch=(document.getElementById('srch')?.value||'').toLowerCase();
+  const filt=document.getElementById('filt')?.value||'';
+  const t=today();
+  let rows=children.filter(c=>{
+    if(srch&&!c.child_full_name?.toLowerCase().includes(srch)&&!c.id?.toLowerCase().includes(srch))return false;
+    if(filt==='today'&&c.session_date!==t)return false;
+    if(filt==='zd'&&c.zero_dose!=='Yes')return false;
+    return true;
+  }).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
+  const tbl=document.getElementById('rtbl'),empty=document.getElementById('reg-empty');
+  if(!rows.length){tbl.style.display='none';empty.style.display='block';}
+  else{tbl.style.display='table';empty.style.display='none';}
+
+  document.getElementById('rtbody').innerHTML=rows.map(c=>{
+    const va=Array.isArray(c.vaccines)?c.vaccines:(typeof c.vaccines==='string'?JSON.parse(c.vaccines||'[]'):[]);
+    return`<tr class="${c.zero_dose==='Yes'?'zd-row':''}" onclick="viewChild('${c.id}')">
+      <td>${c.id}</td><td class="bold">${c.child_full_name}</td>
+      <td>${c.age||'—'} / ${c.sex==='Male'?'♂':'♀'}</td>
+      <td>${c.mother_name}</td><td>${c.community||'—'}</td>
+      <td>${fmtD(c.session_date)}</td>
+      <td><div class="vtags">${va.map(v=>`<span class="vtag">${v.name}</span>`).join('')}</div></td>
+      <td>${c.zero_dose==='Yes'?'<span class="badge bg-a">⭐ Yes</span>':'<span class="badge bg-g">No</span>'}</td>
+      <td>${fmtD(c.next_appointment)}</td>
+    </tr>`;}).join('');
+  updateCounts();
+}
+
+function updateCounts(){
+  const t=today(),tc=children.filter(c=>c.session_date===t);
+  document.getElementById('b-today').textContent=tc.length;
+  document.getElementById('b-total').textContent=children.length;
+  document.getElementById('b-zd').textContent=tc.filter(c=>c.zero_dose==='Yes').length;
+  document.getElementById('b-date').textContent=fmtD(t);
+  document.getElementById('cnt-reg').textContent=children.length;
+}
+
+function viewChild(id){
+  const c=children.find(x=>x.id===id);if(!c)return;
+  const va=Array.isArray(c.vaccines)?c.vaccines:(typeof c.vaccines==='string'?JSON.parse(c.vaccines||'[]'):[]);
+  document.getElementById('m-title').textContent=c.child_full_name;
+  document.getElementById('m-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px;">
+      <div><p class="sm muted">ID</p><p class="bold" style="font-family:monospace;color:var(--teal)">${c.id}</p></div>
+      <div><p class="sm muted">DOB</p><p>${fmtD(c.dob)}</p></div>
+      <div><p class="sm muted">Age / Sex</p><p>${c.age||'—'} / ${c.sex}</p></div>
+      <div><p class="sm muted">Zero-Dose</p><span class="badge ${c.zero_dose==='Yes'?'bg-a':'bg-g'}">${c.zero_dose}</span></div>
+      <div><p class="sm muted">Mother</p><p class="bold">${c.mother_name}</p></div>
+      <div><p class="sm muted">Phone</p><p>${c.phone||'—'}</p></div>
+      <div><p class="sm muted">Community</p><p>${c.community||'—'}</p></div>
+      <div><p class="sm muted">Health Card</p><span class="badge ${c.health_card==='Yes'?'bg-g':'bg-r'}">${c.health_card}</span></div>
+      <div><p class="sm muted">Visit Type</p><p>${c.visit_type}</p></div>
+      <div><p class="sm muted">Next Appt</p><p class="bold" style="color:var(--amber)">${fmtD(c.next_appointment)}</p></div>
+    </div>
+    <div class="divider"></div>
+    <p class="sm muted mb8">Vaccines Given</p>
+    <div class="vtags" style="gap:6px;margin-bottom:14px;">${va.map(v=>`<span class="vtag" style="font-size:12px;padding:3px 10px;">${v.name}</span>`).join('')}</div>
+    <div class="divider"></div>
+    <p class="sm muted">Administered by</p><p class="mb8">${c.administered_by||'—'}</p>
+    <p class="sm muted">Remarks</p><p>${c.remarks||'—'}</p>
+    <div class="mt12"><button class="btn btn-r btn-sm" onclick="delChild('${c.id}')">🗑 Delete Record</button></div>`;
+  document.getElementById('child-ov').classList.add('on');
+}
+function closeMod(){document.getElementById('child-ov').classList.remove('on');}
+document.getElementById('child-ov').addEventListener('click',function(e){if(e.target===this)closeMod();});
+function delChild(id){if(!confirm('Delete this record?'))return;children=children.filter(c=>c.id!==id);saveLocal();closeMod();renderReg();toast('Record deleted');}
+
+function renderSum(){
+  const dt=document.getElementById('sum-dt')?.value||'';
+  const rows=dt?children.filter(c=>c.session_date===dt):children;
+  const doses=rows.reduce((s,c)=>{const a=Array.isArray(c.vaccines)?c.vaccines:(typeof c.vaccines==='string'?JSON.parse(c.vaccines||'[]'):[]);return s+a.length;},0);
+  document.getElementById('sum-stats').innerHTML=`
+    <div class="ch">Summary — ${dt?fmtD(dt):'All time'}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
+    ${[['Children',rows.length,'var(--green)'],['Total Doses',doses,'var(--teal)'],
+      ['Zero-Dose',rows.filter(c=>c.zero_dose==='Yes').length,'var(--amber)'],
+      ['Outreach',rows.filter(c=>c.visit_type==='Outreach').length,'var(--mid)'],
+      ['Defaulters',rows.filter(c=>c.visit_type==='Defaulter return').length,'var(--mid)'],
+      ['Girls',rows.filter(c=>c.sex==='Female').length,'var(--mid)']
+    ].map(([l,v,col])=>`<div style="background:var(--bg);border-radius:var(--r);padding:12px;border-top:3px solid ${col};">
+      <div class="sm muted" style="font-weight:700;font-size:10px;text-transform:uppercase;">${l}</div>
+      <div style="font-size:24px;font-weight:900;color:${col}">${v}</div></div>`).join('')}
+    </div>`;
+  const cnt={};
+  rows.forEach(c=>{const a=Array.isArray(c.vaccines)?c.vaccines:(typeof c.vaccines==='string'?JSON.parse(c.vaccines||'[]'):[]);a.forEach(v=>{cnt[v.id]=(cnt[v.id]||0)+1;});});
+  document.getElementById('tally').innerHTML=VAX.map(v=>`<div class="tc"><div class="tcn">${v.name}</div><div class="tcv">${cnt[v.id]||0}</div><div class="tcs">${v.sub}</div></div>`).join('');
+}
+
+function usedD(gid){
+  const pfx=DPFX[gid]||[gid];
+  return children.reduce((s,c)=>{const a=Array.isArray(c.vaccines)?c.vaccines:(typeof c.vaccines==='string'?JSON.parse(c.vaccines||'[]'):[]);return s+a.filter(v=>pfx.includes(v.id)).length;},0);
+}
+
+function buildStockTable(){
+  document.getElementById('stk-body').innerHTML=SGRP.map(g=>{
+    const s=stock[g.id]||{open:0,recv:0,waste:0};
+    const u=usedD(g.id),cl=(parseInt(s.open)||0)+(parseInt(s.recv)||0)-u-(parseInt(s.waste)||0);
+    const tot=u+(parseInt(s.waste)||0),wr=tot>0?(((parseInt(s.waste)||0)/tot)*100).toFixed(1):'0.0';
+    return`<tr><td class="bold">${g.name}</td>
+      <td><input type="number" id="sk_${g.id}_o" value="${s.open||0}" min="0" style="width:70px;border:1.5px solid var(--line);border-radius:4px;padding:5px 6px;font-size:12px;" oninput="calcSR('${g.id}')"/></td>
+      <td><input type="number" id="sk_${g.id}_r" value="${s.recv||0}" min="0" style="width:70px;border:1.5px solid var(--line);border-radius:4px;padding:5px 6px;font-size:12px;" oninput="calcSR('${g.id}')"/></td>
+      <td id="sk_${g.id}_u" style="font-weight:700;color:var(--teal)">${u}</td>
+      <td><input type="number" id="sk_${g.id}_w" value="${s.waste||0}" min="0" style="width:70px;border:1.5px solid var(--line);border-radius:4px;padding:5px 6px;font-size:12px;" oninput="calcSR('${g.id}')"/></td>
+      <td id="sk_${g.id}_c" style="font-weight:700;color:${cl<0?'var(--red)':'var(--green)'}">${cl}</td>
+      <td><span class="badge ${parseFloat(wr)>25?'bg-r':parseFloat(wr)>15?'bg-a':'bg-g'}">${wr}%</span></td>
+    </tr>`;}).join('');
+}
+function calcSR(gid){
+  const o=+document.getElementById(`sk_${gid}_o`)?.value||0,r=+document.getElementById(`sk_${gid}_r`)?.value||0;
+  const u=+document.getElementById(`sk_${gid}_u`)?.textContent||0,w=+document.getElementById(`sk_${gid}_w`)?.value||0;
+  const cl=o+r-u-w,tot=u+w,wr=tot>0?((w/tot)*100).toFixed(1):'0.0';
+  const ce=document.getElementById(`sk_${gid}_c`);if(ce){ce.textContent=cl;ce.style.color=cl<0?'var(--red)':'var(--green)';}
+}
+function saveStock(){SGRP.forEach(g=>{stock[g.id]={open:+document.getElementById(`sk_${g.id}_o`)?.value||0,recv:+document.getElementById(`sk_${g.id}_r`)?.value||0,waste:+document.getElementById(`sk_${g.id}_w`)?.value||0};});saveLocal();toast('✓ Stock saved');}
+
+window.addEventListener('online',()=>flushPending());
+window.addEventListener('offline',()=>setSS('pending','Offline'));
+</script>
+</body>
+</html>

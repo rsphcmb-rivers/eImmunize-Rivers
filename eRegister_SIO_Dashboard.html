@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SIO Dashboard — eImmunize Rivers State</title>
+<style>
+:root{
+  --ink:#0A1C1C;--teal:#00574F;--teal2:#007A6E;--mint:#00C49A;--mintl:#E0F7F1;
+  --amber:#C97B00;--amberl:#FFF3DC;--red:#B52D2D;--redl:#FDEAEA;
+  --green:#1A6B42;--greenl:#E3F5EC;--mid:#3A5C59;--muted:#6B8F8C;
+  --line:#D0E6E3;--bg:#F0F9F8;--white:#FFFFFF;
+  --shadow:0 2px 16px rgba(0,87,79,0.10);--r:10px;--r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;min-height:100vh;display:flex;flex-direction:column;}
+.hdr{background:var(--ink);color:#fff;padding:0 20px;height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,0.25);}
+.hdr-logo{font-family:Georgia,serif;font-size:20px;font-weight:900;letter-spacing:-0.5px;}
+.hdr-logo em{color:var(--mint);font-style:normal;}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.5);flex:1;}
+.live-pill{display:flex;align-items:center;gap:6px;background:var(--mint);color:var(--ink);font-size:10px;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:.5px;}
+.livdot{width:6px;height:6px;border-radius:50%;background:var(--ink);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.refresh-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:var(--r2);cursor:pointer;font-size:12px;font-weight:600;}
+.refresh-btn:hover{background:rgba(255,255,255,.2);}
+.shell{display:flex;flex:1;min-height:calc(100vh - 56px);}
+.sidebar{width:206px;background:var(--white);border-right:1.5px solid var(--line);padding:14px 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+.ss{padding:7px 16px 4px;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+.nav{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-left:3px solid transparent;transition:all .15s;}
+.nav:hover{background:var(--mintl);color:var(--ink);}
+.nav.on{background:var(--mintl);color:var(--teal);font-weight:700;border-left-color:var(--teal);}
+.nav .ni{font-size:16px;width:20px;text-align:center;}
+.nav-divider{border:none;border-top:1px solid var(--line);margin:8px 16px;}
+.main{flex:1;padding:20px;overflow-y:auto;}
+.pg{display:none;}.pg.on{display:block;}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;}
+.ch{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.ch-l{display:flex;align-items:center;gap:8px;}
+.ch-l::before{content:'';width:4px;height:14px;background:var(--mint);border-radius:2px;display:inline-block;}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:16px;}
+.sc{background:var(--white);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--teal);}
+.sc.g{border-top-color:var(--green);}
+.sc.a{border-top-color:var(--amber);}
+.sc.m{border-top-color:var(--mint);}
+.sc.r{border-top-color:var(--red);}
+.sl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.sv{font-size:28px;font-weight:900;color:var(--ink);line-height:1;}
+.ss2{font-size:11px;color:var(--muted);margin-top:4px;}
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.tbl thead th{background:var(--teal);color:#fff;padding:9px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+.tbl tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s;}
+.tbl tbody tr:hover{background:var(--mintl);}
+.tbl td{padding:9px 11px;vertical-align:middle;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.bg-g{background:var(--greenl);color:var(--green);}
+.bg-a{background:var(--amberl);color:var(--amber);}
+.bg-r{background:var(--redl);color:var(--red);}
+.bg-t{background:var(--mintl);color:var(--teal);}
+.bg-x{background:#eee;color:#555;}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+.tc{background:var(--mintl);border:1.5px solid var(--line);border-radius:var(--r);padding:11px;text-align:center;}
+.tcn{font-size:11px;font-weight:700;color:var(--ink);}
+.tcv{font-size:26px;font-weight:900;color:var(--teal);line-height:1.1;}
+.tcs{font-size:10px;color:var(--muted);margin-top:2px;}
+.chart-box{position:relative;height:210px;}
+.alert-item{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;border-radius:var(--r2);margin-bottom:8px;border-left:4px solid;}
+.ai-c{background:var(--redl);border-color:var(--red);}
+.ai-w{background:var(--amberl);border-color:var(--amber);}
+.ai-ok{background:var(--greenl);border-color:var(--green);}
+.ai-icon{font-size:17px;margin-top:1px;}
+.ai-text strong{display:block;font-size:13px;color:var(--ink);}
+.ai-text span{font-size:12px;color:var(--muted);}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:14px;}
+.ov.on{display:flex;}
+.modal{background:var(--white);border-radius:14px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+.mh{background:var(--teal);color:#fff;padding:16px 20px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.mh h3{font-size:15px;font-weight:700;}
+.mc{background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.mb{padding:18px;}
+.btn{padding:8px 18px;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.btn-p{background:var(--teal);color:#fff;}.btn-p:hover{background:var(--teal2);}
+.btn-o{background:transparent;border:1.5px solid var(--teal);color:var(--teal);}.btn-o:hover{background:var(--mintl);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.flex{display:flex;}.aic{align-items:center;}.jcb{justify-content:space-between;}.fw{flex-wrap:wrap;}
+.gap8{gap:8px;}.gap12{gap:12px;}.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.sm{font-size:12px;}.muted{color:var(--muted);}.bold{font-weight:700;}
+.divider{border:none;border-top:1px solid var(--line);margin:13px 0;}
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.empty .ei{font-size:42px;margin-bottom:10px;}
+.vtags{display:flex;flex-wrap:wrap;gap:3px;}
+.vtag{background:var(--mintl);color:var(--teal);border:1px solid var(--line);border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;}
+.lastupd{font-size:11px;color:var(--muted);margin-top:6px;}
+@media(max-width:680px){.sidebar{display:none;}.sgrid{grid-template-columns:1fr 1fr;}.main{padding:12px;}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><div class="hdr-logo">e<em>Immunize</em></div><div class="hdr-sub">SIO Dashboard · Rivers State PHCMB · Private Facility Monitor</div></div>
+  <button class="refresh-btn" onclick="loadAll()">⟳ Refresh Now</button>
+  <div class="live-pill"><div class="livdot"></div>LIVE</div>
+</div>
+<div class="shell">
+  <div class="sidebar">
+    <div class="ss">Monitor</div>
+    <div class="nav on" onclick="goPg('overview',this)"><span class="ni">📊</span>Overview</div>
+    <div class="nav" onclick="goPg('children',this)"><span class="ni">👶</span>Children Register</div>
+    <div class="nav" onclick="goPg('vaccines',this)"><span class="ni">💉</span>Vaccines Used</div>
+    <div class="nav" onclick="goPg('facilities',this)"><span class="ni">🏥</span>Facilities</div>
+    <div class="nav" onclick="goPg('alerts',this)"><span class="ni">⚠</span>Alerts <span id="abadge" style="display:none;margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;"></span></div>
+    <div class="nav-divider"></div>
+    <div class="ss">Settings</div>
+    <div class="nav" onclick="goPg('settings',this)"><span class="ni">⚙</span>Settings</div>
+  </div>
+  <div class="main">
+
+    <div class="pg on" id="pg-overview">
+      <div class="flex jcb aic mb12 fw gap8">
+        <div><h2 style="font-size:20px;font-weight:800;">Overview</h2><div class="lastupd" id="last-upd">Last refresh: —</div></div>
+        <div class="flex gap8 fw">
+          <select id="ov-df" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:#fff;" onchange="renderOV()">
+            <option value="">All time</option><option value="today">Today</option>
+            <option value="week">This week</option><option value="month">This month</option>
+          </select>
+          <select id="ov-lf" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:#fff;" onchange="renderOV()">
+            <option value="">All LGAs</option>
+          </select>
+        </div>
+      </div>
+      <div class="sgrid" id="ov-stats"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
+        <div class="card"><div class="ch"><span class="ch-l">Children Vaccinated — Daily Trend</span></div><div class="chart-box"><canvas id="cDay"></canvas></div></div>
+        <div class="card"><div class="ch"><span class="ch-l">Doses by Vaccine (Top 10)</span></div><div class="chart-box"><canvas id="cVax"></canvas></div></div>
+        <div class="card"><div class="ch"><span class="ch-l">By Facility</span></div><div class="chart-box"><canvas id="cFac"></canvas></div></div>
+        <div class="card"><div class="ch"><span class="ch-l">Sex Distribution</span></div><div class="chart-box"><canvas id="cSex"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="pg" id="pg-children">
+      <div class="flex jcb aic mb12 fw gap8">
+        <h2 style="font-size:20px;font-weight:800;">Children Register</h2>
+        <div class="flex gap8 fw">
+          <input id="csrch" type="text" placeholder="🔍  Search name, ID, facility…"
+            style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;min-width:200px;background:#fff;"
+            oninput="renderChildren()"/>
+          <select id="czd" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:#fff;" onchange="renderChildren()">
+            <option value="">All</option><option value="zd">Zero-dose only</option><option value="nzd">Non zero-dose</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>#</th><th>ID</th><th>Child Name</th><th>Age/Sex</th><th>Mother</th><th>Community</th><th>Facility</th><th>LGA</th><th>Session Date</th><th>Vaccines Given</th><th>Zero-Dose</th></tr></thead>
+          <tbody id="ctbody"></tbody>
+        </table></div>
+        <div class="empty" id="cempty" style="display:none;"><div class="ei">👶</div><p>No records yet.<br>Records appear here automatically as facilities enter them.</p></div>
+        <div class="sm muted mt8" id="ccount"></div>
+      </div>
+    </div>
+
+    <div class="pg" id="pg-vaccines">
+      <div class="flex jcb aic mb12 fw gap8">
+        <h2 style="font-size:20px;font-weight:800;">Vaccines Used</h2>
+        <select id="vdf" style="border:1.5px solid var(--line);border-radius:var(--r2);padding:7px 11px;font-size:13px;background:#fff;" onchange="renderVax()">
+          <option value="">All time</option><option value="today">Today</option>
+          <option value="week">This week</option><option value="month">This month</option>
+        </select>
+      </div>
+      <div class="card"><div class="ch"><span class="ch-l">Doses Given by Antigen</span></div><div class="tg" id="vtally"></div></div>
+      <div class="card"><div class="ch"><span class="ch-l">Detailed Breakdown</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Vaccine</th><th>Disease</th><th>Total Doses</th><th>Today</th><th>This Week</th></tr></thead>
+          <tbody id="vtbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="pg" id="pg-facilities">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px;">Private Facilities</h2>
+      <div class="sgrid" id="fac-stats"></div>
+      <div class="card">
+        <div class="ch"><span class="ch-l">All Reporting Facilities</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Facility Name</th><th>LGA</th><th>Ward</th><th>Focal Person</th><th>Children Registered</th><th>Last Session</th><th>Status</th></tr></thead>
+          <tbody id="ftbody"></tbody>
+        </table></div>
+        <div class="empty" id="fempty" style="display:none;"><div class="ei">🏥</div><p>No facility data yet.</p></div>
+      </div>
+    </div>
+
+    <div class="pg" id="pg-alerts">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px;">Alerts & Notifications</h2>
+      <div id="alerts-wrap"></div>
+    </div>
+
+    <div class="pg" id="pg-settings">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px;">Settings</h2>
+      <div class="card">
+        <div class="ch"><span class="ch-l">Auto-Refresh</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><label class="sm muted bold">Refresh Interval</label>
+            <select id="cfg-poll" style="display:block;width:100%;margin-top:4px;border:1.5px solid var(--line);border-radius:var(--r2);padding:8px 10px;font-size:13px;">
+              <option value="30">Every 30 seconds</option>
+              <option value="60">Every 1 minute</option>
+              <option value="120">Every 2 minutes</option>
+              <option value="300">Every 5 minutes</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-p mt12" onclick="saveSettings()">Save Settings</button>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ch-l">Data</span></div>
+        <p class="sm muted mb12">Clear all locally cached dashboard data. This does not delete data from the database — refresh to re-fetch.</p>
+        <button class="btn" style="background:var(--red);color:#fff;" onclick="clearCache()">🗑 Clear Local Cache</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="ov" id="child-ov">
+  <div class="modal">
+    <div class="mh"><h3 id="m-title">Child Record</h3><button class="mc" onclick="closeMod()">×</button></div>
+    <div class="mb" id="m-body"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const SB_URL='https://jojqqtncavxvykjxrcda.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvanFxdG5jYXZ4dnlranhyY2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMDMyMDQsImV4cCI6MjA5Njg3OTIwNH0.gQBD8bjUuVKHpnGQEf3X-I_RaIXQPTrxK2LsxoFLah0';
+const SBH={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+const VAX=[
+  {id:'BCG',name:'BCG',sub:'Tuberculosis'},{id:'OPV0',name:'OPV-0',sub:'Polio Birth'},
+  {id:'OPV1',name:'OPV-1',sub:'Polio 6wks'},{id:'OPV2',name:'OPV-2',sub:'Polio 10wks'},
+  {id:'OPV3',name:'OPV-3',sub:'Polio 14wks'},{id:'IPV1',name:'IPV-1',sub:'Polio inj 6wks'},
+  {id:'IPV2',name:'IPV-2',sub:'Polio inj 14wks'},{id:'HepB0',name:'Hep B0',sub:'Hepatitis B Birth'},
+  {id:'Penta1',name:'Penta-1',sub:'DPT 6wks'},{id:'Penta2',name:'Penta-2',sub:'DPT 10wks'},
+  {id:'Penta3',name:'Penta-3',sub:'DPT 14wks'},{id:'PCV1',name:'PCV-1',sub:'Pneumo 6wks'},
+  {id:'PCV2',name:'PCV-2',sub:'Pneumo 10wks'},{id:'PCV3',name:'PCV-3',sub:'Pneumo 14wks'},
+  {id:'Rota1',name:'Rota-1',sub:'Rota 6wks'},{id:'Rota2',name:'Rota-2',sub:'Rota 10wks'},
+  {id:'Rota3',name:'Rota-3',sub:'Rota 14wks'},{id:'MR1',name:'MR-1',sub:'Measles 9m'},
+  {id:'MR2',name:'MR-2',sub:'Measles 15m'},{id:'YF',name:'Yel.Fever',sub:'YF 9m'},
+  {id:'MenA',name:'MenA',sub:'Meningococcal'},{id:'HPV1',name:'HPV-1',sub:'Girls 9-14yr'},
+  {id:'HPV2',name:'HPV-2',sub:'Girls 6m later'},{id:'Td',name:'Td',sub:'Tetanus'},
+  {id:'VitA',name:'Vit A',sub:'Vitamin A'},
+];
+
+let allRows=[];
+let charts={};
+let pollTimer=null;
+
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtD(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});}
+function fltDate(rows,f){
+  if(!f)return rows;
+  const n=new Date();
+  if(f==='today')return rows.filter(r=>r.session_date===today());
+  if(f==='week'){const w=new Date(n);w.setDate(w.getDate()-7);return rows.filter(r=>new Date(r.session_date)>=w);}
+  if(f==='month'){const mo=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;return rows.filter(r=>(r.session_date||'').startsWith(mo));}
+  return rows;
+}
+function parseVax(v){if(Array.isArray(v))return v;if(typeof v==='string'){try{return JSON.parse(v);}catch(e){return[];}}return[];}
+
+async function loadAll(){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/immunization_register?select=*&order=created_at.desc&limit=5000`,{headers:SBH});
+    if(!r.ok)throw new Error(r.status);
+    allRows=await r.json();
+    document.getElementById('last-upd').textContent=`Last refresh: ${new Date().toLocaleTimeString('en-NG')} — ${allRows.length} records`;
+    populateLGAFilter();
+    renderOV();
+    renderAlerts();
+  }catch(e){
+    document.getElementById('last-upd').textContent=`⚠ Could not connect to database. Check internet.`;
+  }
+}
+
+function populateLGAFilter(){
+  const sel=document.getElementById('ov-lf');
+  const lgas=[...new Set(allRows.map(r=>r.facility_lga).filter(Boolean))].sort();
+  while(sel.options.length>1)sel.remove(1);
+  lgas.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;sel.appendChild(o);});
+}
+
+function goPg(name,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  if(name==='overview')renderOV();
+  if(name==='children')renderChildren();
+  if(name==='vaccines')renderVax();
+  if(name==='facilities')renderFacilities();
+  if(name==='alerts')renderAlerts();
+}
+
+function getFiltered(){
+  let rows=allRows;
+  const df=document.getElementById('ov-df')?.value||'';
+  const lf=document.getElementById('ov-lf')?.value||'';
+  rows=fltDate(rows,df);
+  if(lf)rows=rows.filter(r=>r.facility_lga===lf);
+  return rows;
+}
+
+function renderOV(){
+  const rows=getFiltered();
+  const doses=rows.reduce((s,r)=>s+parseVax(r.vaccines).length,0);
+  const zd=rows.filter(r=>r.zero_dose==='Yes').length;
+  const facs=[...new Set(rows.map(r=>r.facility_name).filter(Boolean))].length;
+  const todayC=rows.filter(r=>r.session_date===today()).length;
+
+  document.getElementById('ov-stats').innerHTML=[
+    ['Children Vaccinated',rows.length,'g','All filtered records'],
+    ['Total Doses Given',doses,'m','Across all antigens'],
+    ['Zero-Dose Reached',zd,'a','First-ever contact'],
+    ['Today\'s Count',todayC,'','This calendar day'],
+    ['Active Facilities',facs,'','Reporting this period'],
+    ['Girls Vaccinated',rows.filter(r=>r.sex==='Female').length,'','Female clients'],
+  ].map(([l,v,c,s])=>`<div class="sc ${c}"><div class="sl">${l}</div><div class="sv">${Number(v).toLocaleString()}</div><div class="ss2">${s}</div></div>`).join('');
+
+  buildCharts(rows);
+  renderAlertBadge();
+}
+
+function buildCharts(rows){
+  const days=[];
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().split('T')[0]);}
+  const dailyC=days.map(d=>rows.filter(r=>r.session_date===d).length);
+
+  const vCnt={};
+  rows.forEach(r=>parseVax(r.vaccines).forEach(v=>{vCnt[v.id]=(vCnt[v.id]||0)+1;}));
+  const topV=Object.entries(vCnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  const fCnt={};
+  rows.forEach(r=>{const f=r.facility_name||'Unknown';fCnt[f]=(fCnt[f]||0)+1;});
+
+  const mc=rows.filter(r=>r.sex==='Male').length,fc=rows.filter(r=>r.sex==='Female').length;
+
+  function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);}
+
+  mk('cDay',{type:'bar',data:{
+    labels:days.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-NG',{day:'2-digit',month:'short'})),
+    datasets:[{label:'Children',data:dailyC,backgroundColor:'rgba(0,87,79,0.75)',borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#e0f4f0'}}}}});
+
+  mk('cVax',{type:'bar',data:{
+    labels:topV.map(([id])=>{const v=VAX.find(x=>x.id===id);return v?.name||id;}),
+    datasets:[{label:'Doses',data:topV.map(([,c])=>c),backgroundColor:'rgba(0,196,154,0.75)',borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+
+  mk('cFac',{type:'bar',data:{
+    labels:Object.keys(fCnt).map(f=>f.length>20?f.substring(0,18)+'…':f),
+    datasets:[{label:'Children',data:Object.values(fCnt),backgroundColor:'rgba(26,107,66,0.75)',borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+
+  mk('cSex',{type:'doughnut',data:{
+    labels:['Male','Female'],
+    datasets:[{data:[mc,fc],backgroundColor:['rgba(0,87,79,0.8)','rgba(201,123,0,0.8)'],borderWidth:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+}
+
+function renderChildren(){
+  const srch=(document.getElementById('csrch')?.value||'').toLowerCase();
+  const zdf=document.getElementById('czd')?.value||'';
+  let rows=allRows.filter(r=>{
+    if(srch&&!r.child_full_name?.toLowerCase().includes(srch)&&!r.id?.toLowerCase().includes(srch)&&!r.facility_name?.toLowerCase().includes(srch))return false;
+    if(zdf==='zd'&&r.zero_dose!=='Yes')return false;
+    if(zdf==='nzd'&&r.zero_dose==='Yes')return false;
+    return true;
+  });
+  const tbody=document.getElementById('ctbody'),empty=document.getElementById('cempty');
+  if(!rows.length){if(tbody)tbody.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+  document.getElementById('ccount').textContent=`Showing ${rows.length} of ${allRows.length} records`;
+  if(tbody)tbody.innerHTML=rows.map((r,i)=>{
+    const va=parseVax(r.vaccines);
+    return`<tr onclick="viewChild('${r.id}')">
+      <td class="muted sm">${i+1}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--teal);font-weight:700;">${r.id}</td>
+      <td class="bold">${r.child_full_name||'—'}</td>
+      <td>${r.age||'—'} / ${r.sex==='Male'?'♂':'♀'}</td>
+      <td>${r.mother_name||'—'}</td>
+      <td>${r.community||'—'}</td>
+      <td>${r.facility_name||'—'}</td>
+      <td>${r.facility_lga||'—'}</td>
+      <td>${fmtD(r.session_date)}</td>
+      <td><div class="vtags">${va.map(v=>`<span class="vtag">${v.name}</span>`).join('')}</div></td>
+      <td>${r.zero_dose==='Yes'?'<span class="badge bg-a">⭐ Yes</span>':'<span class="badge bg-g">No</span>'}</td>
+    </tr>`;}).join('');
+}
+
+function viewChild(id){
+  const r=allRows.find(x=>x.id===id);if(!r)return;
+  const va=parseVax(r.vaccines);
+  document.getElementById('m-title').textContent=r.child_full_name;
+  document.getElementById('m-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px;">
+      <div><p class="sm muted">ID</p><p class="bold" style="font-family:monospace;color:var(--teal)">${r.id}</p></div>
+      <div><p class="sm muted">DOB</p><p>${fmtD(r.dob)}</p></div>
+      <div><p class="sm muted">Age / Sex</p><p>${r.age||'—'} / ${r.sex}</p></div>
+      <div><p class="sm muted">Zero-Dose</p><span class="badge ${r.zero_dose==='Yes'?'bg-a':'bg-g'}">${r.zero_dose}</span></div>
+      <div><p class="sm muted">Mother</p><p class="bold">${r.mother_name}</p></div>
+      <div><p class="sm muted">Phone</p><p>${r.phone||'—'}</p></div>
+      <div><p class="sm muted">Community</p><p>${r.community||'—'}</p></div>
+      <div><p class="sm muted">Health Card</p><span class="badge ${r.health_card==='Yes'?'bg-g':'bg-r'}">${r.health_card}</span></div>
+      <div><p class="sm muted">Facility</p><p>${r.facility_name} · ${r.facility_lga}</p></div>
+      <div><p class="sm muted">Focal Person</p><p>${r.focal_person||'—'}</p></div>
+      <div><p class="sm muted">Session Date</p><p>${fmtD(r.session_date)}</p></div>
+      <div><p class="sm muted">Next Appointment</p><p class="bold" style="color:var(--amber)">${fmtD(r.next_appointment)}</p></div>
+    </div>
+    <div class="divider"></div>
+    <p class="sm muted mb8">Vaccines Given</p>
+    <div class="vtags" style="gap:6px;margin-bottom:14px;">${va.map(v=>`<span class="vtag" style="font-size:12px;padding:3px 10px;">${v.name}</span>`).join('')}</div>
+    ${r.remarks?`<div class="divider"></div><p class="sm muted">Remarks</p><p class="sm">${r.remarks}</p>`:''}`;
+  document.getElementById('child-ov').classList.add('on');
+}
+function closeMod(){document.getElementById('child-ov').classList.remove('on');}
+document.getElementById('child-ov').addEventListener('click',function(e){if(e.target===this)closeMod();});
+
+function renderVax(){
+  const df=document.getElementById('vdf')?.value||'';
+  const rows=fltDate(allRows,df);
+  const todayR=fltDate(allRows,'today'),weekR=fltDate(allRows,'week');
+  const cnt=(arr,id)=>arr.reduce((s,r)=>s+parseVax(r.vaccines).filter(v=>v.id===id).length,0);
+
+  document.getElementById('vtally').innerHTML=VAX.map(v=>`
+    <div class="tc"><div class="tcn">${v.name}</div><div class="tcv">${cnt(rows,v.id)}</div><div class="tcs">${v.sub}</div></div>`).join('');
+
+  document.getElementById('vtbody').innerHTML=VAX.map(v=>`
+    <tr><td class="bold">${v.name}</td><td class="muted">${v.sub}</td>
+    <td style="font-weight:800;color:var(--teal)">${cnt(rows,v.id)}</td>
+    <td>${cnt(todayR,v.id)}</td><td>${cnt(weekR,v.id)}</td></tr>`).join('');
+}
+
+function renderFacilities(){
+  const facs={};
+  allRows.forEach(r=>{
+    const fn=r.facility_name;if(!fn)return;
+    if(!facs[fn])facs[fn]={name:fn,lga:r.facility_lga,ward:r.facility_ward,focal:r.focal_person,count:0,lastDate:''};
+    facs[fn].count++;
+    if(!facs[fn].lastDate||r.session_date>facs[fn].lastDate)facs[fn].lastDate=r.session_date;
+  });
+  const fl=Object.values(facs);
+  const tbody=document.getElementById('ftbody'),empty=document.getElementById('fempty');
+  if(!fl.length){if(tbody)tbody.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+
+  const t=today();
+  document.getElementById('fac-stats').innerHTML=[
+    ['Reporting Facilities',fl.length,''],
+    ['Active Today',fl.filter(f=>f.lastDate===t).length,'g'],
+    ['LGAs Covered',[...new Set(fl.map(f=>f.lga).filter(Boolean))].length,'m'],
+    ['Total Children',allRows.length,''],
+  ].map(([l,v,c])=>`<div class="sc ${c}"><div class="sl">${l}</div><div class="sv">${v}</div></div>`).join('');
+
+  if(tbody)tbody.innerHTML=fl.sort((a,b)=>b.count-a.count).map(f=>`<tr>
+    <td class="bold" style="color:var(--teal)">${f.name}</td>
+    <td>${f.lga||'—'}</td><td>${f.ward||'—'}</td><td>${f.focal||'—'}</td>
+    <td class="bold">${f.count}</td>
+    <td>${fmtD(f.lastDate)}</td>
+    <td><span class="badge ${f.lastDate===t?'bg-g':'bg-x'}">${f.lastDate===t?'Active Today':'Inactive'}</span></td>
+  </tr>`).join('');
+}
+
+function generateAlerts(){
+  const alerts=[];
+  const facs={};
+  allRows.forEach(r=>{const fn=r.facility_name;if(!fn)return;if(!facs[fn])facs[fn]={lastDate:''};if(!facs[fn].lastDate||r.session_date>facs[fn].lastDate)facs[fn].lastDate=r.session_date;});
+  const wkAgo=new Date();wkAgo.setDate(wkAgo.getDate()-7);
+
+  Object.entries(facs).forEach(([name,f])=>{
+    if(f.lastDate&&new Date(f.lastDate)<wkAgo)
+      alerts.push({level:'w',title:`${name} — No session in 7+ days`,body:`Last: ${fmtD(f.lastDate)}`});
+  });
+
+  const noNext=allRows.filter(r=>!r.next_appointment).length;
+  if(noNext>5&&noNext/allRows.length>0.3)
+    alerts.push({level:'w',title:`${noNext} children missing next appointment`,body:'Remind facilities to set follow-up dates.'});
+
+  const zd=allRows.filter(r=>r.zero_dose==='Yes').length;
+  if(zd===0&&allRows.length>20)
+    alerts.push({level:'w',title:'No zero-dose children recorded',body:'Facilities may not be screening for zero-dose status.'});
+
+  if(allRows.filter(r=>r.session_date===today()).length===0&&allRows.length>0)
+    alerts.push({level:'w',title:'No sessions recorded today',body:'No children entered today across all facilities.'});
+
+  return alerts;
+}
+
+function renderAlerts(){
+  const al=generateAlerts();
+  const el=document.getElementById('alerts-wrap');if(!el)return;
+  if(!al.length){el.innerHTML=`<div class="alert-item ai-ok"><div class="ai-icon">✓</div><div class="ai-text"><strong>No active alerts</strong><span>All facilities appear to be reporting normally.</span></div></div>`;return;}
+  el.innerHTML=[
+    `<div class="sgrid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="sc r"><div class="sl">Critical</div><div class="sv">${al.filter(a=>a.level==='c').length}</div></div>
+      <div class="sc a"><div class="sl">Warnings</div><div class="sv">${al.filter(a=>a.level==='w').length}</div></div>
+      <div class="sc"><div class="sl">Total</div><div class="sv">${al.length}</div></div>
+    </div>`,
+    ...al.map(a=>`<div class="alert-item ${a.level==='c'?'ai-c':'ai-w'}">
+      <div class="ai-icon">${a.level==='c'?'🔴':'⚡'}</div>
+      <div class="ai-text"><strong>${a.title}</strong><span>${a.body}</span></div>
+    </div>`)
+  ].join('');
+}
+
+function renderAlertBadge(){
+  const al=generateAlerts();
+  const b=document.getElementById('abadge');
+  if(!b)return;
+  if(al.length){b.style.display='inline-block';b.textContent=al.length;}
+  else b.style.display='none';
+}
+
+function saveSettings(){
+  const v=document.getElementById('cfg-poll').value;
+  localStorage.setItem('sio_poll',v);
+  startPoll(parseInt(v));
+  alert('Settings saved.');
+}
+
+function clearCache(){
+  if(!confirm('Clear local cache?'))return;
+  allRows=[];renderOV();renderAlerts();
+  document.getElementById('last-upd').textContent='Cache cleared. Click Refresh to reload.';
+}
+
+function startPoll(secs){
+  if(pollTimer)clearInterval(pollTimer);
+  pollTimer=setInterval(loadAll,secs*1000);
+}
+
+window.onload=()=>{
+  const saved=localStorage.getItem('sio_poll')||'30';
+  document.getElementById('cfg-poll').value=saved;
+  loadAll();
+  startPoll(parseInt(saved));
+};
+</script>
+</body>
+</html>
