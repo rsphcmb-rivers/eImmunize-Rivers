@@ -584,7 +584,12 @@ const SUPABASE_URL  = 'https://jojqqtncavxvykjxrcda.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvanFxdG5jYXZ4dnlranhyY2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMDMyMDQsImV4cCI6MjA5Njg3OTIwNH0.gQBD8bjUuVKHpnGQEf3X-I_RaIXQPTrxK2LsxoFLah0';
 
 // NOTE: Replace SUPABASE_ANON above with your actual anon key
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let supabase;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+} catch(e) {
+  console.error('Supabase init failed:', e);
+}
 
 // ─── EPI VACCINE SCHEDULE (grouped by age) ────────────────────────
 const VACCINE_SCHEDULE = [
@@ -797,6 +802,7 @@ async function registerChild() {
   };
 
   try {
+    if (!supabase) throw new Error('Database not connected. Check internet connection.');
     const { error } = await supabase.from('immunization_register').insert([record]);
     if (error) throw error;
     showAlert(`✅ Record saved for ${name}. Vaccines: ${vaccines.join(', ')}`, 'success');
@@ -823,6 +829,12 @@ function clearForm() {
 async function loadRecords() {
   document.getElementById('loadingRecords').style.display = '';
   document.getElementById('recordsBody').innerHTML = '';
+
+  if (!supabase) {
+    showAlert('Database not connected. Check internet connection.', 'error');
+    document.getElementById('loadingRecords').style.display = 'none';
+    return;
+  }
 
   try {
     const { data, error } = await supabase
@@ -911,13 +923,14 @@ function populateVaccineFilter() {
 
 // ─── STATS ───────────────────────────────────────────────────────
 async function loadStats() {
+  if (!supabase) return;
   try {
     const { data } = await supabase
       .from('immunization_register')
       .select('id, visit_date, return_visit_date, next_appointment')
       .eq('facility_code', currentFacility.facility_code);
     if (data) updateStats(data);
-  } catch(e) {}
+  } catch(e) { console.warn('Stats load failed:', e); }
 }
 
 function updateStats(records) {
