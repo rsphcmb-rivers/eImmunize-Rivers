@@ -334,21 +334,7 @@
   <!-- ALERT AREA -->
   <div id="alertArea"></div>
 
-  <!-- FACILITY LOGIN / SELECTOR -->
-  <div class="card" id="loginCard">
-    <div class="card-title">🔐 Facility Access</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Facility Code / ID</label>
-        <input type="text" id="facilityCode" placeholder="Enter your facility code" />
-      </div>
-      <div class="form-group">
-        <label>Vaccinator PIN</label>
-        <input type="password" id="vaccinatorPin" placeholder="4-digit PIN" maxlength="4" />
-      </div>
-    </div>
-    <button class="btn btn-green" onclick="loginFacility()">Login →</button>
-  </div>
+  <!-- No login required -->
 
   <!-- MAIN SECTION (hidden until login) -->
   <div id="mainSection" style="display:none">
@@ -362,7 +348,6 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <span style="font-size:11px; opacity:0.85;" id="sessionDateDisplay"></span>
-          <button class="btn btn-sm" style="background:rgba(255,255,255,0.2); color:white;" onclick="logout()">Logout</button>
         </div>
       </div>
     </div>
@@ -608,12 +593,13 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('visitTime').value = nowTime();
   document.getElementById('sessionDateDisplay').textContent = formatDate(today());
 
-  // Try restore session
-  const saved = localStorage.getItem('eimm_facility');
-  if (saved) {
-    currentFacility = JSON.parse(saved);
-    showMainSection();
-  }
+  // Auto-start — no login required
+  currentFacility = {
+    facility_code: 'RSPHCMB',
+    facility_name: 'RSPHCMB eImmunize-Rivers',
+    lga: 'Rivers State'
+  };
+  showMainSection();
 });
 
 function today() {
@@ -742,7 +728,6 @@ async function loginFacility() {
 }
 
 function showMainSection() {
-  document.getElementById('loginCard').style.display = 'none';
   document.getElementById('mainSection').style.display = '';
   document.getElementById('facilityNameDisplay').textContent = currentFacility.facility_name || currentFacility.facility_code;
   document.getElementById('facilityLGADisplay').textContent = currentFacility.lga || '';
