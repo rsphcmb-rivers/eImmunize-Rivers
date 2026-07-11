@@ -121,9 +121,9 @@
     .view-only-bar{background:#fff8e1;border:1px solid #fbbf24;border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#92400e;font-weight:600;text-align:center;}
     /* LOGIN ROLE CARDS */
     .role-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
-    .role-card{border:2px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;}
-    .role-card:hover{border-color:var(--gmid);background:var(--glight);}
-    .role-card.selected{border-color:var(--green);background:var(--glight);}
+    .role-card{border:2px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;background:white;width:100%;-webkit-tap-highlight-color:transparent;}
+    .role-card:hover,.role-card:active{border-color:var(--gmid);background:var(--glight);}
+    .role-card.selected{border-color:var(--green);background:var(--glight);box-shadow:0 0 0 3px rgba(26,107,60,0.2);}
     .role-card .ricon{font-size:24px;margin-bottom:4px;}
     .role-card .rname{font-size:12px;font-weight:700;color:var(--green);}
     .role-card .rdesc{font-size:10px;color:var(--gray);}
@@ -162,13 +162,13 @@
     <div class="ibox">Select your role, then enter your Username and PIN.</div>
 
     <div class="role-cards" id="roleCards">
-      <div class="role-card" data-role="rifp"><div class="ricon">🏥</div><div class="rname">RIFP</div><div class="rdesc">Facility Data Entry</div></div>
-      <div class="role-card" data-role="md"><div class="ricon">👨‍⚕️</div><div class="rname">MD</div><div class="rdesc">Medical Director</div></div>
-      <div class="role-card" data-role="lio"><div class="ricon">🏛️</div><div class="rname">LIO</div><div class="rdesc">LGA Immunization Officer</div></div>
-      <div class="role-card" data-role="lcco"><div class="ricon">📋</div><div class="rname">LCCO</div><div class="rdesc">LGA Cold Chain Officer</div></div>
-      <div class="role-card" data-role="lga_me"><div class="ricon">📊</div><div class="rname">LGA M&amp;E</div><div class="rdesc">LGA Monitoring</div></div>
-      <div class="role-card" data-role="sio"><div class="ricon">🌐</div><div class="rname">SIO</div><div class="rdesc">State Immunization Officer</div></div>
-      <div class="role-card" data-role="state_me"><div class="ricon">📈</div><div class="rname">State M&amp;E</div><div class="rdesc">State Monitoring</div></div>
+      <button class="role-card" data-role="rifp" type="button"><div class="ricon">🏥</div><div class="rname">RIFP</div><div class="rdesc">Facility Data Entry</div></button>
+      <button class="role-card" data-role="md" type="button"><div class="ricon">👨‍⚕️</div><div class="rname">MD</div><div class="rdesc">Medical Director</div></button>
+      <button class="role-card" data-role="lio" type="button"><div class="ricon">🏛️</div><div class="rname">LIO</div><div class="rdesc">LGA Immunization Officer</div></button>
+      <button class="role-card" data-role="lcco" type="button"><div class="ricon">📋</div><div class="rname">LCCO</div><div class="rdesc">LGA Cold Chain Officer</div></button>
+      <button class="role-card" data-role="lga_me" type="button"><div class="ricon">📊</div><div class="rname">LGA M&amp;E</div><div class="rdesc">LGA Monitoring</div></button>
+      <button class="role-card" data-role="sio" type="button"><div class="ricon">🌐</div><div class="rname">SIO</div><div class="rdesc">State Immunization Officer</div></button>
+      <button class="role-card" data-role="state_me" type="button"><div class="ricon">📈</div><div class="rname">State M&amp;E</div><div class="rdesc">State Monitoring</div></button>
     </div>
 
     <div class="form-row">
@@ -770,21 +770,32 @@ function initDB(){
 
 // ── ROLE CARD SELECTION ────────────────────────────────────────────
 let selectedRole = null;
-document.querySelectorAll('.role-card').forEach(function(card){
-  card.addEventListener('click',function(){
-    document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedRole = card.dataset.role;
-    $('loginRoleDisplay').textContent='Selected: '+card.querySelector('.rname').textContent;
-  });
+
+function selectRole(role, card) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedRole = role;
+  $('loginRoleDisplay').textContent = 'Role selected: ' + card.querySelector('.rname').textContent;
+  $('loginRoleDisplay').style.color = 'var(--green)';
+  $('loginRoleDisplay').style.fontWeight = '600';
+}
+
+document.querySelectorAll('.role-card').forEach(function(card) {
+  // Handle both click and touchend for mobile
+  function handleSelect(e) {
+    e.preventDefault();
+    selectRole(card.dataset.role, card);
+  }
+  card.addEventListener('click', handleSelect);
+  card.addEventListener('touchend', handleSelect, {passive: false});
 });
 
 // ── LOGIN ──────────────────────────────────────────────────────────
 $('loginBtn').addEventListener('click', async function(){
   const uname=($('loginUser').value||'').trim();
   const pin=($('loginPin').value||'').trim();
-  if(!selectedRole){ showAlert('Please select your role first.','error'); return; }
-  if(!uname||!pin){ showAlert('Enter username and PIN.','error'); return; }
+  if(!selectedRole){ showAlert('⚠️ Please tap a role card first (e.g. RIFP, SIO, LIO), then click Login.','error'); return; }
+  if(!uname||!pin){ showAlert('⚠️ Please enter both Username and PIN.','error'); return; }
   initDB();
   if(!db){ showAlert('Database not connected. Check internet.','error'); return; }
   showAlert('Verifying...','info');
@@ -2631,7 +2642,7 @@ window.onload=function(){
       user=JSON.parse(saved); initDB();
       // Re-select role card
       const card=document.querySelector('[data-role="'+user.role+'"]');
-      if(card){ card.classList.add('selected'); selectedRole=user.role; }
+      if(card){ selectRole(user.role, card); }
       openSection();
     }catch(e){ sessionStorage.removeItem('eimm_user'); }
   }
