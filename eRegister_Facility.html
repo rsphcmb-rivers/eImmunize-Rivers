@@ -775,29 +775,22 @@ function selectRole(role, card) {
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   selectedRole = role;
-  $('loginRoleDisplay').textContent = 'Role selected: ' + card.querySelector('.rname').textContent;
-  $('loginRoleDisplay').style.color = 'var(--green)';
-  $('loginRoleDisplay').style.fontWeight = '600';
+  var disp = document.getElementById('loginRoleDisplay');
+  if(disp){
+    disp.textContent = '✅ Role selected: ' + card.querySelector('.rname').textContent;
+    disp.style.color = '#1a6b3c';
+    disp.style.fontWeight = '700';
+  }
 }
 
-document.querySelectorAll('.role-card').forEach(function(card) {
-  // Handle both click and touchend for mobile
-  function handleSelect(e) {
-    e.preventDefault();
-    selectRole(card.dataset.role, card);
-  }
-  card.addEventListener('click', handleSelect);
-  card.addEventListener('touchend', handleSelect, {passive: false});
-});
-
 // ── LOGIN ──────────────────────────────────────────────────────────
-$('loginBtn').addEventListener('click', async function(){
-  const uname=($('loginUser').value||'').trim();
-  const pin=($('loginPin').value||'').trim();
-  if(!selectedRole){ showAlert('⚠️ Please tap a role card first (e.g. RIFP, SIO, LIO), then click Login.','error'); return; }
+async function doLogin(){
+  const uname=(document.getElementById('loginUser').value||'').trim();
+  const pin=(document.getElementById('loginPin').value||'').trim();
+  if(!selectedRole){ showAlert('⚠️ Please tap a role card first (RIFP, SIO, LIO, etc.), then tap Login.','error'); return; }
   if(!uname||!pin){ showAlert('⚠️ Please enter both Username and PIN.','error'); return; }
   initDB();
-  if(!db){ showAlert('Database not connected. Check internet.','error'); return; }
+  if(!db){ showAlert('Database not connected. Check internet connection.','error'); return; }
   showAlert('Verifying...','info');
   try{
     const {data,error}=await db.from('eimm_users')
@@ -807,13 +800,15 @@ $('loginBtn').addEventListener('click', async function(){
       .eq('role',selectedRole)
       .eq('active',true)
       .single();
-    if(error||!data){ showAlert('❌ Incorrect username, PIN or role. Please check and try again.','error'); return; }
+    if(error||!data){
+      showAlert('❌ Incorrect username, PIN or role. Check credentials and try again.','error');
+      return;
+    }
     user=data;
     sessionStorage.setItem('eimm_user',JSON.stringify(user));
     openSection();
   }catch(e){ showAlert('Login error: '+e.message,'error'); }
-});
-$('loginPin').addEventListener('keydown',function(e){ if(e.key==='Enter') $('loginBtn').click(); });
+}
 
 function openSection(){
   $('loginCard').style.display='none';
@@ -2636,6 +2631,28 @@ window.onload=function(){
       .catch(e=>console.log('SW registration failed:',e));
   }
   updateSyncBadge();
+
+  // ── ROLE CARD SELECTION (inside onload so DOM is ready) ──────────
+  document.querySelectorAll('.role-card').forEach(function(card){
+    function handleSelect(e){
+      e.preventDefault();
+      e.stopPropagation();
+      selectRole(card.dataset.role, card);
+    }
+    card.addEventListener('click', handleSelect);
+    card.addEventListener('touchend', handleSelect, {passive:false});
+  });
+
+  // ── LOGIN BUTTON ─────────────────────────────────────────────────
+  var loginBtn = document.getElementById('loginBtn');
+  if(loginBtn){
+    loginBtn.addEventListener('click', doLogin);
+    loginBtn.addEventListener('touchend', function(e){ e.preventDefault(); doLogin(); }, {passive:false});
+  }
+
+  // Enter key on PIN
+  var pinField = document.getElementById('loginPin');
+  if(pinField) pinField.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
   const saved=sessionStorage.getItem('eimm_user');
   if(saved){
     try{
