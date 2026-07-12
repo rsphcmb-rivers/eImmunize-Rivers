@@ -25,6 +25,11 @@
     .sync-pending{background:#e67e22;color:white;}
     @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
     .offline-banner{display:none;background:#c0392b;color:white;text-align:center;padding:8px;font-size:12px;font-weight:600;}
+    .session-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+    .session-fixed{background:#e8f5e9;color:#1a6b3c;border:1px solid #a5d6a7;}
+    .session-outreach{background:#e3f0fc;color:#1565c0;border:1px solid #90caf9;}
+    .session-sia{background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;}
+    .session-mnchw{background:#fff3e0;color:#e67e22;border:1px solid #ffcc80;}
     .offline-banner.show{display:block;}
     .hlogo{height:54px;width:54px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.5);flex-shrink:0;}
     .htxt h1{font-size:15px;font-weight:700;} .htxt p{font-size:11px;opacity:0.85;}
@@ -162,13 +167,13 @@
     <div class="ibox">Select your role, then enter your Username and PIN.</div>
 
     <div class="role-cards" id="roleCards">
-      <button class="role-card" data-role="rifp" type="button"><div class="ricon">🏥</div><div class="rname">RIFP</div><div class="rdesc">Facility Data Entry</div></button>
-      <button class="role-card" data-role="md" type="button"><div class="ricon">👨‍⚕️</div><div class="rname">MD</div><div class="rdesc">Medical Director</div></button>
-      <button class="role-card" data-role="lio" type="button"><div class="ricon">🏛️</div><div class="rname">LIO</div><div class="rdesc">LGA Immunization Officer</div></button>
-      <button class="role-card" data-role="lcco" type="button"><div class="ricon">📋</div><div class="rname">LCCO</div><div class="rdesc">LGA Cold Chain Officer</div></button>
-      <button class="role-card" data-role="lga_me" type="button"><div class="ricon">📊</div><div class="rname">LGA M&amp;E</div><div class="rdesc">LGA Monitoring</div></button>
-      <button class="role-card" data-role="sio" type="button"><div class="ricon">🌐</div><div class="rname">SIO</div><div class="rdesc">State Immunization Officer</div></button>
-      <button class="role-card" data-role="state_me" type="button"><div class="ricon">📈</div><div class="rname">State M&amp;E</div><div class="rdesc">State Monitoring</div></button>
+      <button class="role-card" data-role="rifp" type="button" onclick="pickRole('rifp',this)"><div class="ricon">🏥</div><div class="rname">RIFP</div><div class="rdesc">Facility Data Entry</div></button>
+      <button class="role-card" data-role="md" type="button" onclick="pickRole('md',this)"><div class="ricon">👨‍⚕️</div><div class="rname">MD</div><div class="rdesc">Medical Director</div></button>
+      <button class="role-card" data-role="lio" type="button" onclick="pickRole('lio',this)"><div class="ricon">🏛️</div><div class="rname">LIO</div><div class="rdesc">LGA Immunization Officer</div></button>
+      <button class="role-card" data-role="lcco" type="button" onclick="pickRole('lcco',this)"><div class="ricon">📋</div><div class="rname">LCCO</div><div class="rdesc">LGA Cold Chain Officer</div></button>
+      <button class="role-card" data-role="lga_me" type="button" onclick="pickRole('lga_me',this)"><div class="ricon">📊</div><div class="rname">LGA M&amp;E</div><div class="rdesc">LGA Monitoring</div></button>
+      <button class="role-card" data-role="sio" type="button" onclick="pickRole('sio',this)"><div class="ricon">🌐</div><div class="rname">SIO</div><div class="rdesc">State Immunization Officer</div></button>
+      <button class="role-card" data-role="state_me" type="button" onclick="pickRole('state_me',this)"><div class="ricon">📈</div><div class="rname">State M&amp;E</div><div class="rdesc">State Monitoring</div></button>
     </div>
 
     <div class="form-row">
@@ -226,6 +231,29 @@
           <div class="form-group"><label>Visit Date *</label><input type="date" id="vDate"/></div>
           <div class="form-group"><label>Visit Time</label><input type="time" id="vTime"/></div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Session Type *</label>
+            <select id="sessionType">
+              <option value="">— Select session type —</option>
+              <option value="Fixed">Fixed Session (facility-based)</option>
+              <option value="Outreach">Outreach Session (community)</option>
+              <option value="Outreach-OOS">Outreach — Out-of-Session (OOS)</option>
+              <option value="Outreach-Immunization Plus">Outreach — Immunization Plus Day</option>
+              <option value="School">School-Based Session</option>
+              <option value="MNCHW">MNCH Week Campaign</option>
+              <option value="SIA">Supplemental Immunization Activity (SIA)</option>
+            </select>
+          </div>
+          <div class="form-group" id="outreachLocationGroup" style="display:none">
+            <label>Outreach Location / Community</label>
+            <input type="text" id="outreachLocation" placeholder="Name of community/school visited"/>
+          </div>
+          <div class="form-group" id="outreachTeamGroup" style="display:none">
+            <label>Outreach Team Leader</label>
+            <input type="text" id="outreachTeam" placeholder="Team leader name"/>
+          </div>
+        </div>
         <div class="slbl">💉 Vaccines Given Today</div>
         <p style="font-size:11px;color:var(--gray);margin-bottom:8px;"><span style="color:var(--red);font-weight:700;">Red = No MDVP (discard 6h)</span> &nbsp;|&nbsp; <span style="color:var(--green);font-weight:700;">Green = MDVP (keep 28d)</span></p>
         <div class="vwrap" id="vaxGrid"></div>
@@ -265,7 +293,7 @@
           <select id="srchVax"><option value="">All vaccines</option></select>
         </div>
         <div id="recLoading" class="loading" style="display:none"><div class="spinner"></div><br/>Loading...</div>
-        <div class="tw"><table><thead><tr><th>#</th><th>Child Name</th><th>DOB/Age</th><th>Sex</th><th>Mother</th><th>Phone</th><th>Visit Date</th><th>Time</th><th>Vaccines</th><th>Return Visit</th><th>Next Appt</th><th>Action</th></tr></thead>
+        <div class="tw"><table><thead><tr><th>#</th><th>Child Name</th><th>DOB/Age</th><th>Sex</th><th>Mother</th><th>Phone</th><th>Visit Date</th><th>Session Type</th><th>Vaccines</th><th>Return Visit</th><th>Next Appt</th><th>Action</th></tr></thead>
         <tbody id="recBody"><tr><td colspan="12" class="loading">No records yet.</td></tr></tbody></table></div>
         <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <div>
@@ -708,6 +736,28 @@
 
 <script>
 const SUPABASE_URL  = 'https://jojqqtncavxvykjxrcda.supabase.co';
+
+// ── ROLE SELECTION — global so onclick works immediately ──────────
+var selectedRole = null;
+
+function pickRole(role, btn) {
+  selectedRole = role;
+  // Highlight selected card
+  var cards = document.querySelectorAll('.role-card');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].classList.remove('selected');
+  }
+  btn.classList.add('selected');
+  // Update label
+  var disp = document.getElementById('loginRoleDisplay');
+  var name = btn.querySelector('.rname') ? btn.querySelector('.rname').textContent : role;
+  if (disp) {
+    disp.textContent = '✅ Role selected: ' + name;
+    disp.style.color = '#1a6b3c';
+    disp.style.fontWeight = '700';
+    disp.style.fontStyle = 'normal';
+  }
+}
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvanFxdG5jYXZ4dnlranhyY2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMDMyMDQsImV4cCI6MjA5Njg3OTIwNH0.gQBD8bjUuVKHpnGQEf3X-I_RaIXQPTrxK2LsxoFLah0';
 let db = null;
 
@@ -769,19 +819,7 @@ function initDB(){
 }
 
 // ── ROLE CARD SELECTION ────────────────────────────────────────────
-let selectedRole = null;
-
-function selectRole(role, card) {
-  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  selectedRole = role;
-  var disp = document.getElementById('loginRoleDisplay');
-  if(disp){
-    disp.textContent = '✅ Role selected: ' + card.querySelector('.rname').textContent;
-    disp.style.color = '#1a6b3c';
-    disp.style.fontWeight = '700';
-  }
-}
+// (role selection handled by pickRole above)
 
 // ── LOGIN ──────────────────────────────────────────────────────────
 async function doLogin(){
@@ -856,7 +894,7 @@ $('logoutBtn').addEventListener('click',function(){
   $('loginCard').style.display=''; $('hrole').style.display='none';
   $('loginUser').value=''; $('loginPin').value='';
   document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
-  selectedRole=null; $('loginRoleDisplay').textContent='No role selected';
+  selectedRole=null; var d=document.getElementById('loginRoleDisplay'); if(d){d.textContent='No role selected';d.style.color='';d.style.fontWeight='';d.style.fontStyle='italic';}
 });
 
 // ══════════════════════════════════════════════════════
@@ -915,6 +953,7 @@ $('saveChildBtn').addEventListener('click', async function(){
   const dob=$('cDOB').value; const sex=$('cSex').value; const vd=$('vDate').value;
   const vax=getChecked('vaxGrid');
   if(!name||!dob||!sex||!vd){ showAlert('Fill in: Name, DOB, Sex, Visit Date.','error'); return; }
+  if(!sessionType){ showAlert('Select a session type.','error'); return; }
   if(!vax.length){ showAlert('Select at least one vaccine.','error'); return; }
   if(!db){ showAlert('Database not connected.','error'); return; }
   try{
@@ -939,6 +978,11 @@ function clearF(){
   ['cName','mName','cPhone','cAddr','vaccName','remarks'].forEach(id=>$(id).value='');
   ['cDOB','nextAppt'].forEach(id=>$(id).value='');
   $('cSex').value=''; $('vDate').value=today(); $('vTime').value=nowTime();
+  if($('sessionType')) $('sessionType').value='';
+  if($('outreachLocation')) $('outreachLocation').value='';
+  if($('outreachTeam')) $('outreachTeam').value='';
+  if($('outreachLocationGroup')) $('outreachLocationGroup').style.display='none';
+  if($('outreachTeamGroup')) $('outreachTeamGroup').style.display='none';
   document.querySelectorAll('#vaxGrid input').forEach(c=>{ c.checked=false; c.closest('.vcb').classList.remove('on'); });
 }
 
@@ -982,7 +1026,10 @@ function renderRec(rows, tbId='recBody', showFac=false, showAction=true){
     const ret=(r.return_visit_date||rv.length)?'<div><span class="rb">🔄 '+fmtD(r.return_visit_date)+'</span>'+(r.return_visit_time?'<br/><small>⏰'+r.return_visit_time+'</small>':'')+'<div>'+rB+'</div></div>':'<span style="color:#ccc">—</span>';
     const facCell=showFac?'<td>'+(r.facility_name||r.facility_code||'—')+'</td>':'';
     const actCell=showAction&&canEdit()?'<td><button class="btn btn-orange btn-sm edit-btn" data-id="'+r.id+'">✏️ Edit</button></td>':'<td></td>';
-    return '<tr><td>'+(i+1)+'</td><td><strong>'+r.child_name+'</strong></td><td>'+fmtD(r.date_of_birth)+'<br/><small>'+age(r.date_of_birth)+'</small></td><td>'+(r.sex||'—')+'</td><td>'+(r.mother_name||'—')+'</td><td>'+(r.phone||'—')+'</td>'+facCell+'<td>'+fmtD(r.visit_date)+'</td><td>'+(vB||'—')+'</td><td>'+ret+'</td><td>'+(r.next_appointment?fmtD(r.next_appointment):'—')+'</td>'+actCell+'</tr>';
+    const st=r.session_type||'Fixed';
+    const stCls=st==='Fixed'?'session-fixed':st.startsWith('SIA')?'session-sia':st.startsWith('MNCHW')?'session-mnchw':'session-outreach';
+    const stBadge='<span class="session-badge '+stCls+'">'+st+'</span>'+(r.outreach_location?'<br/><small style="color:var(--gray)">📍'+r.outreach_location+'</small>':'');
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+r.child_name+'</strong></td><td>'+fmtD(r.date_of_birth)+'<br/><small>'+age(r.date_of_birth)+'</small></td><td>'+(r.sex||'—')+'</td><td>'+(r.mother_name||'—')+'</td><td>'+(r.phone||'—')+'</td>'+facCell+'<td>'+fmtD(r.visit_date)+'</td><td>'+stBadge+'</td><td>'+(vB||'—')+'</td><td>'+ret+'</td><td>'+(r.next_appointment?fmtD(r.next_appointment):'—')+'</td>'+actCell+'</tr>';
   }).join('');
   document.querySelectorAll('#'+tbId+' .edit-btn').forEach(function(btn){
     btn.addEventListener('click',function(){ openEdit(this.dataset.id,allRec); });
@@ -1159,7 +1206,7 @@ const REC_COLS=[
   {label:'Child Name',key:'child_name'},{label:'Date of Birth',key:'date_of_birth'},{label:'Age',key:'_age'},
   {label:'Sex',key:'sex'},{label:'Mother/Guardian',key:'mother_name'},{label:'Phone',key:'phone'},
   {label:'Address',key:'address'},{label:'Facility',key:'facility_name'},{label:'LGA',key:'lga'},
-  {label:'Visit Date',key:'visit_date'},{label:'Visit Time',key:'visit_time'},
+  {label:'Visit Date',key:'visit_date'},{label:'Visit Time',key:'visit_time'},{label:'Session Type',key:'session_type'},{label:'Outreach Location',key:'outreach_location'},
   {label:'Vaccines Given',key:'vaccines_given'},{label:'Vaccinator',key:'vaccinator_name'},
   {label:'Next Appointment',key:'next_appointment'},{label:'Return Visit Date',key:'return_visit_date'},
   {label:'Return Visit Time',key:'return_visit_time'},{label:'Return Vaccines',key:'return_vaccines_given'},
@@ -2637,11 +2684,23 @@ window.onload=function(){
     function handleSelect(e){
       e.preventDefault();
       e.stopPropagation();
-      selectRole(card.dataset.role, card);
+      pickRole(card.dataset.role, card);
     }
     card.addEventListener('click', handleSelect);
     card.addEventListener('touchend', handleSelect, {passive:false});
   });
+
+  // ── SESSION TYPE TOGGLE ───────────────────────────────────────────
+  var stSel = document.getElementById('sessionType');
+  if(stSel){
+    stSel.addEventListener('change', function(){
+      var isOut = this.value && this.value !== 'Fixed';
+      var lg = document.getElementById('outreachLocationGroup');
+      var tg = document.getElementById('outreachTeamGroup');
+      if(lg) lg.style.display = isOut ? '' : 'none';
+      if(tg) tg.style.display = isOut ? '' : 'none';
+    });
+  }
 
   // ── LOGIN BUTTON ─────────────────────────────────────────────────
   var loginBtn = document.getElementById('loginBtn');
@@ -2659,7 +2718,7 @@ window.onload=function(){
       user=JSON.parse(saved); initDB();
       // Re-select role card
       const card=document.querySelector('[data-role="'+user.role+'"]');
-      if(card){ selectRole(user.role, card); }
+      if(card){ pickRole(user.role, card); }
       openSection();
     }catch(e){ sessionStorage.removeItem('eimm_user'); }
   }
