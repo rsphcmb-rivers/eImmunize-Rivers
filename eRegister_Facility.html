@@ -2671,7 +2671,7 @@ async function sendReminders(){
   ];
   downloadCSV(toCSV(rows,cols),'eImmunize_Reminders_'+user.facility_code+'_'+today()+'.csv');
   $('reminderStatus').textContent='✅ '+rows.length+' reminder(s) exported — '+defaulters.length+' defaulters + '+upcoming.length+' upcoming';
-  showAlert('✅ '+rows.length+' reminders exported to CSV. Upload to Africa's Talking or send via WhatsApp Business.','success');
+  showAlert('✅ '+rows.length+' reminders exported. Upload to Africa\'s Talking or send via WhatsApp Business.','success');
 }
 
 // ── SESSION RESTORE ────────────────────────────────────────────────
